@@ -114,6 +114,19 @@ const RM=matchMedia("(prefers-reduced-motion: reduce)").matches,dur=ms=>RM?0:ms;
 const SRC={collisions:null,cameras:null,causes:null,candidates:null};
 const txtColor=p=>p>=.85?"#FF7A9C":colorFor(p);
 const fmtH=h=>(h%12||12)+(h<12?" am":" pm");
+function briefText(c,d){return [
+  "PharOS camera-area brief: "+c.name,
+  "Records: NYC Open Data, Motor Vehicle Collisions - Crashes, Manhattan, 2024-01-01 to "+(window.asOf||"unknown date")+" (file may not be current).",
+  "Area: 120 m circle around the NYC DOT camera at "+c.lat.toFixed(5)+", "+c.lon.toFixed(5)+". Only records with a location are counted. Not adjusted for traffic volume.",
+  "Collisions: "+d.n+"; people injured: "+d.inj+"; pedestrians injured: "+d.ped+"; people killed: "+d.kil+".",
+  "Crash-history percentile among "+cams.length+" camera areas: "+Math.round(c.pct*100)+".",
+  "Most collisions by hour: "+(d.peaks||"none recorded")+".",
+  "Most common recorded causes (first factor on the police report; about half of reports are unspecified): "+(d.fl.map(x=>x[0]+" ("+x[1]+")").join("; ")||"not enough recorded")+".",
+  "Countermeasures to evaluate (ideas, not a diagnosis or a proven effect here): "+(d.steps.slice(0,5).map(x=>x[0]).join("; ")||"no clear pattern")+".",
+  "Caveats: collision location is as recorded by police; the camera still is not part of this brief; PharOS is a screening aid for engineers.",
+  "Sources: https://data.cityofnewyork.us/resource/h9gi-nx95 ; https://webcams.nyctmc.org/map"
+].join("\n")}
+
 
 const hav=(a,b,c,d)=>{const R=6371000,t=x=>x*Math.PI/180,dl=t(c-a),dn=t(d-b);const h=Math.sin(dl/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
 const colorFor=p=>p>=.85?RAMP[3]:p>=.55?RAMP[2]:p>=.25?RAMP[1]:RAMP[0];
@@ -208,12 +221,14 @@ async function pick(id,fly){
   <h3>When it happens</h3><div class="hist" role="img" aria-label="Collisions by hour of day. ${peaks?"Most in: "+esc(peaks):"No collisions recorded."}">${hrs.map((v,h)=>`<i title="${fmtH(h)}, ${v}" style="height:${Math.round(100*v/hm)}%"></i>`).join("")}</div><div class="muted" style="display:flex;justify-content:space-between;font-size:11px" aria-hidden="true"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>11 pm</span></div>${peaks?`<p class="note" style="margin-top:4px">Most collisions: ${esc(peaks)}.</p>`:""}
   <h3>What the records point to</h3>${fl.length?fl.map(([f,n])=>`<div class="bar"><span>${esc(f)}</span><i style="width:${Math.round(100*n/fl[0][1])}%"></i><span>${n}</span></div>`).join(""):'<p class="muted">Not enough recorded causes here.</p>'}
   <h3>Countermeasures to evaluate</h3><ul class="steps">${steps.slice(0,5).map(s=>`<li><b>${esc(s[0])}</b><br><small>${esc(s[1])} (for: ${esc(s[2])})</small></li>`).join("")||'<li class="muted">No clear pattern in the records.</li>'}</ul>
-  <p class="note">Ideas for engineers to evaluate, not a diagnosis or a proven effect at this location.</p>`;
+  <p class="note">Ideas for engineers to evaluate, not a diagnosis or a proven effect at this location.</p>
+  <button class="tool" id="brief" style="min-width:0;margin-top:10px">Copy brief</button> <span class="note" id="briefMsg" role="status"></span>`;
   $("pN").innerHTML=`<h2>${esc(c.name)}</h2>
   <div class="live"><img id="liveImg" alt="Latest still from the traffic camera at ${esc(c.name)}"><span class="badge" id="liveBadge">LATEST STILL</span><span class="stamp" id="stamp"></span></div>
   <p class="note" style="margin-top:6px">A still image, not video. The camera service does not tell us when it was captured; the time shown is when your browser asked for it.</p>
   <div class="grid4"><div class="stat"><b style="color:${known?txtColor(c.pct):"var(--mute)"}">${known&&!failed?pct:"n/a"}</b><small>crash-history percentile among ${cams.length} camera areas</small></div><div class="stat"><b>${failed?"n/a":rows.length}</b><small>collisions within 120 m</small></div><div class="stat"><b>${failed?"n/a":inj}</b><small>people injured</small></div><div class="stat"><b>${failed?"n/a":ped}</b><small>pedestrians injured${!failed&&kil?`, ${kil} killed`:""}</small></div></div>${body}`;
   if(failed)$("retry").onclick=()=>pick(id,false);
+  else $("brief").onclick=async()=>{const t=briefText(c,{n:rows.length,inj,ped,kil,peaks,fl,steps});try{await navigator.clipboard.writeText(t);$("briefMsg").textContent="Copied."}catch(e){const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("aria-label","Brief text");ta.style.cssText="width:100%;height:160px;margin-top:8px;background:var(--night);color:var(--fog);border:1px solid var(--line);border-radius:8px;padding:8px";$("briefMsg").after(ta);ta.select();$("briefMsg").textContent="Copy blocked by the browser; select the text below."}};
   const img=$("liveImg"),badge=$("liveBadge"),stamp=$("stamp");
   const tick=()=>{img.src=c.img+"?t="+Date.now();stamp.textContent="requested "+new Date().toLocaleTimeString()};
   img.onerror=()=>{badge.textContent="IMAGE UNAVAILABLE";badge.classList.add("off")};img.onload=()=>{badge.textContent="LATEST STILL";badge.classList.remove("off")};

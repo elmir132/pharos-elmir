@@ -11,6 +11,7 @@ Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights 
 | 3D Manhattan map, crash heatmap, 377 camera nodes, per-intersection panel, causes, suggested fixes, walkthrough (`web/pharos/`) | Working, public data only |
 | Near-miss detector: one implementation in `nm.py` (vehicle with a pedestrian, cyclist or motorcyclist, moving vehicle, sustained approach and separation, similar depth, plausible speed), 12 tests | Working; runs on VAST footage on the workshop VM and on any local video (`local_video.py`) |
 | Review tab: mark each candidate real, false or unsure, add a reason, export CSV | Built (Mac); the VM copy is older and does not have it yet |
+| Copy brief in each camera-area panel: a plain-text summary (date range, area, counts, peak hours, causes, countermeasures to evaluate, caveats, sources) for an engineer | Built |
 | Source health and honest failure states: each data source can fail alone, unknown is never shown as zero, stills are labelled as stills | Built and tested by blocking the collision source |
 | `eval_labels.py`: precision with a 95% interval, agreement and kappa between two reviewers | Built, tested on synthetic labels; no real labels yet |
 | W&B sentences with a check that every number was measured; Cosmos scene captions | Working on the VM |
