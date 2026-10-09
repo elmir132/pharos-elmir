@@ -97,6 +97,7 @@ All are above the 4.5 to 1 level for normal text. The palette has not been check
 
 ## 6. Files
 
-- `logo-mark.svg` the mark alone
-- `logo.svg` mark and wordmark on Night
+- `logo-mark.svg` the mark alone (dark backgrounds), `logo-mark-light.svg` (light backgrounds)
+- `logo.svg` mark and wordmark on Night, `logo-light.svg` wordmark on a transparent background for light pages
+- `png/` transparent PNG exports: mark 512 px (dark and light), lockup 1720 by 480 (dark and light), favicons 192 and 32
 - `RESEARCH.md` what is known about detecting crashes before they happen, and data sources
