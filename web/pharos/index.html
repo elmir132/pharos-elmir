@@ -134,8 +134,9 @@ async function loadData(){
 function nodesGeo(){return{type:"FeatureCollection",features:cams.map(c=>({type:"Feature",geometry:{type:"Point",coordinates:[c.lon,c.lat]},properties:{id:c.id,name:c.name,pct:c.pct,score:c.score}}))}}
 function heatGeo(){return{type:"FeatureCollection",features:grid.map(q=>({type:"Feature",geometry:{type:"Point",coordinates:[q.lo,q.la]},properties:{w:q.w}}))}}
 
+function noMap(){map={getSource:()=>({setData(){}}),flyTo(){},easeTo(){},getBearing:()=>0,setLayoutProperty(){},on(){},addControl(){}};$("map").innerHTML='<p style="margin:120px 24px;max-width:420px;color:#93A1BA">The 3D map needs WebGL, which this browser does not have. The panels on the right still work: pick an intersection from the list.</p>';window.mapReady=Promise.resolve()}
 function initMap(){
-  map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/liberty",center:[-73.9857,40.7484],zoom:14.6,pitch:62,bearing:-28,maxPitch:80,attributionControl:{compact:true}});
+  try{map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/liberty",center:[-73.9857,40.7484],zoom:14.6,pitch:62,bearing:-28,maxPitch:80,attributionControl:{compact:true}})}catch(e){noMap();return}
   map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
   window.mapReady=new Promise(res=>map.on("load",()=>{
     map.addSource("heat",{type:"geojson",data:heatGeo()});
