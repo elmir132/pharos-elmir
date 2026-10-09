@@ -5,3 +5,4 @@ data/gd.html
 out/
 .env
 *.pt
+data/.dl_done
