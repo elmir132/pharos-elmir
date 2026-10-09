@@ -24,19 +24,15 @@ The tower follows the historical Pharos, which was described as three stacked fo
 
 | Tier | Shape | Product stage | Why this shape |
 |------|-------|---------------|----------------|
-| Base | Square, 36 wide | **Sense**: cameras and crash records | Four sides, stable, the part that must not move |
-| Middle | Octagon, 24 wide | **Measure**: tracks, distance, time to collision | Eight directions of travel, the way traffic actually meets at a corner |
-| Top | Circle, 9 radius | **Warn**: the light a person sees | The one soft, open shape; it is where the system speaks to a human |
+| Base | Square, 30 wide | **Sense**: cameras and crash records | Four sides, stable, the part that must not move |
+| Middle | Octagon, 20 wide | **Measure**: tracks, distance, time to collision | Eight directions of travel, the way traffic actually meets at a corner |
+| Top | Circle, 7 radius | **Warn**: the light a person sees | The one soft, open shape; it is where the system speaks to a human |
 
 Read bottom to top the corners are removed one step at a time: square, octagon, circle. Raw data gets rounded into something a person can act on.
 
-Proportions (viewBox 96 by 96):
-- Base is 36 wide, the octagon 24 wide (a 3 to 2 step), the lantern 18 across, which is half the base.
-- The two beams leave the lantern at about 21 degrees above and below the horizontal, a 42 degree fan. A narrow fan reads as a searchlight, not as a broadcast antenna.
-- A thin ring around the lantern is the "range" of the light, echoing a radar sweep without copying one.
-- The door arch in the base gives the tower scale and a human reference.
+Minimal on purpose (revised Oct 9): three flat shapes and two soft beams. No ring, no door, no outlines, one ink colour plus the beacon. The beams fade to nothing at the tips because the warning is probabilistic.
 
-Beams are soft at the tips (gradient to transparent) because the warning is probabilistic: it fades with distance and uncertainty rather than ending at a hard edge.
+Simplified version for tiny sizes (`favicon.svg`): the tower and lamp without beams.
 
 ## 3. Colour
 
@@ -99,5 +95,6 @@ All are above the 4.5 to 1 level for normal text. The palette has not been check
 
 - `logo-mark.svg` the mark alone (dark backgrounds), `logo-mark-light.svg` (light backgrounds)
 - `logo.svg` mark and wordmark on Night, `logo-light.svg` wordmark on a transparent background for light pages
-- `png/` transparent PNG exports: mark 512 px (dark and light), lockup 1720 by 480 (dark and light), favicons 192 and 32
+- `favicon.svg` beam-free mark for small sizes
+- `png/` transparent PNG exports: mark 512 px (dark and light), lockup 1360 by 384 (dark and light), favicons 192 and 32
 - `RESEARCH.md` what is known about detecting crashes before they happen, and data sources

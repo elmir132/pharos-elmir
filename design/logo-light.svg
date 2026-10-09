@@ -1,18 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 120" role="img" aria-label="PharOS">
-  <g transform="translate(12 12) scale(.96)"><defs>
-    <linearGradient id="bl" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".85"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient>
-    <linearGradient id="br" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".85"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient>
-  </defs>
-  <polygon points="38,31 2,17 2,45" fill="url(#bl)"/>
-  <polygon points="58,31 94,17 94,45" fill="url(#br)"/>
-  <rect x="30" y="62" width="36" height="26" rx="2" fill="#16233F"/>
-  <path d="M43 88V76a5 5 0 0 1 10 0v12z" fill="#F4F1E8"/>
-  <polygon points="43,40 53,40 60,47 60,55 53,62 43,62 36,55 36,47" fill="#2C3E66"/>
-  <rect x="46" y="46" width="4" height="10" rx="2" fill="#F4F1E8"/>
-  <circle cx="48" cy="31" r="14" fill="none" stroke="#FFB703" stroke-opacity=".35" stroke-width="2"/>
-  <circle cx="48" cy="31" r="9" fill="#FFB703"/>
-  <circle cx="48" cy="31" r="3.5" fill="#FFF3D6"/>
-</g>
-  <text x="124" y="74" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-size="44" font-weight="700" fill="#16233F" letter-spacing="1">Phar<tspan fill="#C98900">OS</tspan></text>
-  <text x="126" y="96" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-size="12" fill="#55627F" letter-spacing="1.2">A LIGHTHOUSE FOR CITY INTERSECTIONS</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 96" role="img" aria-label="PharOS"><g><defs><linearGradient id="Ll" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".75"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient><linearGradient id="Lr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".75"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient></defs><polygon points="41,33 4,25 4,41" fill="url(#Ll)"/><polygon points="55,33 92,25 92,41" fill="url(#Lr)"/><rect x="33" y="66" width="30" height="20" rx="1.5" fill="#16233F"/><polygon points="43.5,44 52.5,44 58,49.5 58,56.5 52.5,62 43.5,62 38,56.5 38,49.5" fill="#16233F"/><circle cx="48" cy="33" r="7" fill="#FFB703"/></g><text x="112" y="61" font-family="'Helvetica Neue',Inter,Arial,sans-serif" font-size="40" font-weight="500" letter-spacing="1.5" fill="#16233F">Phar<tspan fill="#C98900">OS</tspan></text></svg>
