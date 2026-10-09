@@ -30,4 +30,4 @@ Pharos, the lighthouse of Alexandria: it does not stop storms, it shows the rock
 4. What would make the 3-minute demo stronger?
 5. What in the design or code would you change?
 
-Repo: github.com/elmir132/pharos-elmir (private). Start with `README.md`, then `AGENTS.md`.
+Repo: github.com/elmir132/pharos-elmir. Start with `README.md`, then `AGENTS.md`.
