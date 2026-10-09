@@ -3,7 +3,7 @@
 """
 import json, sys, urllib.parse as q, urllib.request as u
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import nm, nm2
+import nm
 
 
 def serve(port=8000):

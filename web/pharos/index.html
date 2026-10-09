@@ -74,9 +74,9 @@ h2{margin:0 0 4px;font-size:18px}h3{margin:18px 0 8px;font-size:13px;text-transf
 </div>
 
 <div class="legend" aria-label="Legend">
-  <b>Risk around a camera</b>
-  <div class="ramp"></div><div><span>lower</span><span>higher</span></div>
-  <p class="muted" style="margin:6px 0 0">Heat: injuries and deaths in NYC collision records since 2024. Dot size and colour: the same score within 120 m of each traffic camera.</p>
+  <b>Crash history near a camera</b>
+  <div class="ramp"></div><div><span>lower burden</span><span>higher burden</span></div>
+  <p class="muted" style="margin:6px 0 0">Historical crash burden since 2024: collisions + 2× injuries + 10× deaths within 120 m. It is not adjusted for traffic volume or exposure.</p>
 </div>
 
 <aside aria-label="Insights">
@@ -172,7 +172,7 @@ function overview(f){
   <h3>Most common causes</h3>${fs.map(x=>`<div class="bar"><span>${esc(x.f)}</span><i style="width:${Math.max(6,Math.round(100*x.n/mx))}%"></i><span>${(+x.n).toLocaleString()}</span></div>`).join("")}
   <p class="note">Cause is the first contributing factor recorded by police. About half of reports list it as unspecified, so treat the ranking as a guide.</p>
   <h3>Intersections to look at first</h3>${top.map((c,i)=>`<button class="row" data-id="${c.id}"><span>${i+1}. ${esc(c.name)}</span><span class="score" style="background:${colorFor(c.pct)}">${c.n}</span></button>`).join("")}
-  <p class="note">The number is collisions within 120 m of the camera. Press W for an automatic walkthrough of the top spots.</p>`;
+  <p class="note">Rows are ranked by weighted historical crash burden; each badge shows the collision count within 120 m. Press W for a walkthrough of the top spots.</p>`;
   $("pO").querySelectorAll(".row").forEach(b=>b.onclick=()=>pick(b.dataset.id,true));
 }
 
@@ -192,7 +192,7 @@ async function pick(id,fly){
   const pct=Math.round(c.pct*100);
   $("pN").innerHTML=`<h2>${esc(c.name)}</h2>
   <div class="live"><img id="liveImg" alt="Live traffic camera view at ${esc(c.name)}"><span class="badge" id="liveBadge">LIVE</span><span class="stamp" id="stamp"></span></div>
-  <div class="grid4"><div class="stat"><b style="color:${colorFor(c.pct)}">${pct}</b><small>risk percentile among ${cams.length} cameras</small></div><div class="stat"><b>${rows.length}</b><small>collisions within 120 m</small></div><div class="stat"><b>${inj}</b><small>people injured</small></div><div class="stat"><b>${ped}</b><small>pedestrians injured${kil?`, ${kil} killed`:""}</small></div></div>
+  <div class="grid4"><div class="stat"><b style="color:${colorFor(c.pct)}">${pct}</b><small>crash-history percentile among ${cams.length} cameras</small></div><div class="stat"><b>${rows.length}</b><small>collisions within 120 m</small></div><div class="stat"><b>${inj}</b><small>people injured</small></div><div class="stat"><b>${ped}</b><small>pedestrians injured${kil?`, ${kil} killed`:""}</small></div></div>
   <h3>When it happens</h3><div class="hist" role="img" aria-label="Collisions by hour of day">${hrs.map((v,h)=>`<i title="${h}:00, ${v}" style="height:${Math.round(100*v/hm)}%"></i>`).join("")}</div><div class="muted" style="display:flex;justify-content:space-between;font-size:11px"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>11 pm</span></div>
   <h3>What the records point to</h3>${fl.length?fl.map(([f,n])=>`<div class="bar"><span>${esc(f)}</span><i style="width:${Math.round(100*n/fl[0][1])}%"></i><span>${n}</span></div>`).join(""):'<p class="muted">Not enough recorded causes here.</p>'}
   <h3>Preventable next steps</h3><ul class="steps">${steps.slice(0,5).map(s=>`<li><b>${esc(s[0])}</b><br><small>${esc(s[1])} (for: ${esc(s[2])})</small></li>`).join("")||'<li class="muted">No clear pattern in the records.</li>'}</ul>
@@ -204,12 +204,40 @@ async function pick(id,fly){
 }
 
 const CUES=[["Phone in hand",/phone|texting/i],["Headphones",/headphone|earbud|earphone/i],["Dark clothing",/(dark|black|navy)\s+(jacket|clothing|coat|outfit|hoodie|sweater)/i],["Running or rushing",/running|runs |jogging|dashes|rushing/i],["Crossing against the signal",/against the (light|signal)|jaywalk|mid-?block|red light/i],["Stroller or wheelchair",/stroller|wheelchair/i],["Cyclist",/cyclist|bicycle|bike/i]];
+const LKEY="pharos.labels.v1",NKEY="pharos.labeler.v1";
+const getL=()=>{try{return JSON.parse(localStorage.getItem(LKEY)||"{}")}catch(e){return{}}};
+const putL=o=>{try{localStorage.setItem(LKEY,JSON.stringify(o))}catch(e){}};
+const evId=e=>e.id||[e.video,e.segment,e.t_in_segment,(e.classes||[]).join("+")].join("|");
+function csvCell(v){v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCsv(ev){const L=getL(),who=(()=>{try{return localStorage.getItem(NKEY)||""}catch(e){return""}})();
+  const head=["id","labeler","label","reason","video","segment","t_in_segment_s","classes","severity","min_dist_m","closing_mps","ttc_s","vehicle_speed_mps","site"];
+  const rows=ev.filter(e=>L[evId(e)]).map(e=>{const l=L[evId(e)];return [evId(e),who,l.label,l.reason||"",e.video,e.segment,e.t_in_segment,(e.classes||[]).join("+"),e.severity,e.min_dist_m,e.peak_closing_mps,e.ttc_s??"",e.vehicle_speed_mps??"","unknown (VAST does not publish camera coordinates)"].map(csvCell).join(",")});
+  const blob=new Blob([[head.join(","),...rows].join("\n")],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="pharos_labels_"+(who||"labeler").replace(/\W+/g,"_")+".csv";document.body.appendChild(a);a.click();a.remove()}
 async function watch(){
-  let ev=[];try{const r=await fetch("/events");if(r.ok)ev=await r.json()}catch(e){}
-  const method=`<h3>How PharOS reads risk</h3><ul class="steps"><li><b>Vehicle</b><br><small>Speed from tracked position, then a straight-line projection of where it will be in the next two seconds. A crosswalk it will reach with someone on it is a future conflict.</small></li><li><b>Pedestrian</b><br><small>Situational cues only, taken from the scene description: phone, headphones, dark clothing at dusk, running, crossing against the signal. These raise the chance of a conflict. They are not a judgement of the person.</small></li><li><b>Interaction</b><br><small>Distance and time to collision between a vehicle and a person, measured on the street footage.</small></li></ul>`;
+  let ev=[];for(const u of ["/events","data/events.json"]){try{const r=await fetch(u);if(r.ok){ev=await r.json();if(ev.length)break}}catch(e){}}
+  const method=`<h3>How PharOS reads candidates</h3><ul class="steps"><li><b>Measured now</b><br><small>Tracks estimate approximate distance, closing speed and time to collision in analysed footage. These are candidate events for human review.</small></li><li><b>Scene description</b><br><small>Cosmos captions may surface situational cues such as a phone, headphones, dark clothing or running. These cues are not verified measurements and are never a judgement of a person.</small></li><li><b>Planned</b><br><small>Camera-calibrated trajectory projection into mapped crosswalks, to flag a vehicle path that conflicts with an occupied or soon-to-be-occupied crossing, is not built yet.</small></li></ul>`;
   if(!ev.length){$("pW").innerHTML=`<h2>Watch</h2><p class="muted">Candidate near misses from the analysed street footage appear here when this page is served by the PharOS analysis server (VAST, YOLO, Cosmos, W&amp;B).</p>${method}`;return}
-  $("pW").innerHTML=`<h2>Candidate near misses</h2><p class="muted">${ev.length} found in analysed Manhattan footage. Review before acting.</p>`+ev.slice(0,10).map(e=>{const cues=CUES.filter(c=>c[1].test(e.scene||"")).map(c=>`<span class="cue">${c[0]}</span>`).join("");
-    return `<div class="card"><video controls preload="metadata" src="/clip?src=${encodeURIComponent(e.source)}#t=${Math.max(0,e.t_in_segment-1)}"></video><p><b>${esc(e.classes.join(" + "))}</b> severity ${e.severity}${e.cosmos?` <span class="cue">Cosmos: ${esc(e.cosmos.verdict)}</span>`:""}</p><p class="muted">closest ${Number(e.min_dist_m).toFixed(2)} m, closing ${Number(e.peak_closing_mps).toFixed(1)} m/s${e.ttc_s!=null?`, time to collision ${e.ttc_s} s`:""}${e.vehicle_speed_mps!=null?`, vehicle ${e.vehicle_speed_mps} m/s`:""}</p><div>${cues||'<span class="muted">No pedestrian cues in the description.</span>'}</div></div>`}).join("")+method;
+  const L=getL(),done=ev.filter(e=>L[evId(e)]).length;
+  const cnt=lab=>ev.filter(e=>(L[evId(e)]||{}).label===lab).length;
+  let who="";try{who=localStorage.getItem(NKEY)||""}catch(e){}
+  $("pW").innerHTML=`<h2>Review queue</h2><p class="muted">${ev.length} candidates from analysed Manhattan footage, spread across the severity ranking. Mark each one so we can measure how often the detector is right. Site: unknown (VAST does not publish camera coordinates).</p>
+  <div class="card"><label class="muted" for="lbName">Your name or initials</label><input id="lbName" value="${esc(who)}" placeholder="for the CSV and agreement check" style="width:100%;margin:4px 0 8px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--night);color:var(--fog)">
+  <div id="lbStat" class="muted">${done} of ${ev.length} reviewed: ${cnt("real")} real, ${cnt("false")} false, ${cnt("uncertain")} uncertain.</div>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="tool" id="lbCsv" style="min-width:0">Export CSV</button><button class="tool" id="lbClr" style="min-width:0">Clear labels</button></div></div>`+
+  ev.map((e,i)=>{const id=evId(e),l=L[id]||{},cues=CUES.filter(c=>c[1].test(e.scene||"")).map(c=>`<span class="cue">${c[0]}</span>`).join("");
+    const btn=(v,t)=>`<button class="tool lb" data-i="${i}" data-v="${v}" aria-pressed="${l.label===v}" style="min-width:0;flex:1">${t}</button>`;
+    return `<div class="card" data-card="${i}"><video controls preload="metadata" src="/clip?src=${encodeURIComponent(e.source)}#t=${Math.max(0,e.t_in_segment-1)}"></video><p><b>${i+1}. ${esc((e.classes||[]).join(" + "))}</b> severity ${e.severity}${e.cosmos?` <span class="cue">Cosmos: ${esc(e.cosmos.verdict)}</span>`:""}</p><p class="muted">closest ${Number(e.min_dist_m).toFixed(2)} m, closing ${Number(e.peak_closing_mps).toFixed(1)} m/s${e.ttc_s!=null?`, time to collision ${e.ttc_s} s`:""}${e.vehicle_speed_mps!=null?`, vehicle ${e.vehicle_speed_mps} m/s`:""}</p>
+    <p class="muted" style="margin:4px 0"><small>Real means: a vehicle and a pedestrian or cyclist where someone appears to need evasive action.</small></p>
+    <div style="display:flex;gap:6px">${btn("real","Real")}${btn("false","False")}${btn("uncertain","Unsure")}</div>
+    <input class="lbWhy" data-i="${i}" value="${esc(l.reason||"")}" placeholder="Reason (optional)" style="width:100%;margin-top:6px;padding:7px;border-radius:8px;border:1px solid var(--line);background:var(--night);color:var(--fog)">
+    <details style="margin-top:6px"><summary>Scene description and cues</summary><p class="muted">${esc(e.scene||"n/a")}</p><div>${cues||'<span class="muted">No cues in the description.</span>'}</div></details></div>`}).join("")+method;
+  const refresh=()=>{const L2=getL(),d=ev.filter(e=>L2[evId(e)]).length,c=lab=>ev.filter(e=>(L2[evId(e)]||{}).label===lab).length;$("lbStat").textContent=`${d} of ${ev.length} reviewed: ${c("real")} real, ${c("false")} false, ${c("uncertain")} uncertain.`};
+  $("lbName").onchange=e=>{try{localStorage.setItem(NKEY,e.target.value.trim())}catch(x){}};
+  document.querySelectorAll("button.lb").forEach(b=>b.onclick=()=>{const e=ev[+b.dataset.i],o=getL(),id=evId(e),why=document.querySelector(`.lbWhy[data-i="${b.dataset.i}"]`).value;o[id]={label:b.dataset.v,reason:why,at:new Date().toISOString()};putL(o);
+    b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));refresh()});
+  document.querySelectorAll(".lbWhy").forEach(inp=>inp.onchange=()=>{const e=ev[+inp.dataset.i],o=getL(),id=evId(e);if(o[id]){o[id].reason=inp.value;putL(o)}});
+  $("lbCsv").onclick=()=>exportCsv(ev);
+  $("lbClr").onclick=()=>{if(confirm("Clear all labels in this browser?")){putL({});watch()}};
 }
 
 function startTour(){const top=[...cams].sort((a,b)=>b.score-a.score).slice(0,6);let i=0;tourOn=true;$("tTour").setAttribute("aria-pressed","true");

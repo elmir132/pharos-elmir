@@ -9,11 +9,12 @@ Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights 
 | Part | Status |
 |------|--------|
 | 3D Manhattan map, crash heatmap, 377 camera nodes, per-intersection panel, causes, suggested fixes, walkthrough (`web/pharos/`) | Working, public data only |
-| Candidate near misses from VAST street footage: tracking, distance, closing speed, time to collision (`nm*.py`, `pharos/`) | Working on the workshop VM, accuracy not measured |
-| W&B inference sentences with a check that every number was measured | Working on the VM |
-| Cosmos scene captions on each candidate | Working (comes from the VAST index) |
+| Near-miss detector: one implementation in `nm.py` (vehicle with pedestrian or cyclist, moving vehicle, sustained approach and separation, similar depth, plausible speed), 12 tests | Working; runs on VAST footage on the workshop VM and on any local video (`local_video.py`) |
+| Review queue in the Watch tab: mark each candidate real, false or unsure, add a reason, export CSV | Built (Mac); the VM copy is older and does not have it yet |
+| `eval_labels.py`: precision with a 95% interval, agreement and kappa between two reviewers | Built, tested on synthetic labels; no real labels yet |
+| W&B sentences with a check that every number was measured; Cosmos scene captions | Working on the VM |
 | Cosmos YES/NO check of each candidate (`nm3.py verify`) | Blocked: the GPU endpoint URL is not in the team config |
-| Trajectory projection to future crosswalk conflicts | Designed, not built |
+| Trajectory projection to future crosswalk conflicts | Designed, not built (needs a calibrated camera and crosswalk polygons) |
 | Live detection on NYC DOT cameras | Not possible: they serve still images, not video |
 | Merge with the other team members' version | Not done |
 
@@ -23,26 +24,32 @@ Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights 
     python3 -m http.server 8099
     open http://127.0.0.1:8099
 
-Open it in a normal, visible browser tab (a background tab never finishes drawing the WebGL map). It reads NYC Open Data collisions live; the camera list is `web/pharos/data/cameras.json` because the camera API does not allow browser requests. The collision file currently ends on 2026-06-11.
+Open it in a normal, visible browser tab (a background tab never finishes drawing the WebGL map). It reads NYC Open Data collisions live; the camera list is `web/pharos/data/cameras.json` because the camera API does not allow browser requests. The collision file currently ends on 2026-06-11. The Watch tab reads `/events` (served by `nm5.py`) or `web/pharos/data/events.json` if you export one.
 
 ## Run the near-miss scan (workshop VM only)
 
-The VAST, Cosmos, YOLO and W&B services are reachable only from the VM. See [`VM_RUNBOOK.md`](VM_RUNBOOK.md). In short, in the VM terminal:
+The VAST, Cosmos, YOLO and W&B services are reachable only from the VM. In the VM terminal:
 
     set -a; . /config/team-*.config; set +a
-    python3 nm3.py scan new_york VID_ 40     # writes events.json (stationary street cameras)
-    python3 nm5.py 8000                      # serves the map app plus clips and search
+    PHAROS_SAMPLE=40 python3 nm3.py scan new_york VID_ 60   # writes events.json, 40 candidates spread across severity
+    python3 nm5.py 8000                                      # serves the map app, clips, search and the review queue
 
-The VM browser has no WebGL, so the 3D map does not draw there; the panels and clips do.
+`nm.py` is standard library only, so it can be pasted onto the VM. The VM browser has no WebGL, so the 3D map does not draw there; the panels, clips and the review queue do.
+
+## Measure precision
+
+1. Each reviewer opens the Watch tab, enters their initials, marks the clips, and presses Export CSV.
+2. `python eval_labels.py A.csv B.csv` prints precision among the clips marked real or false, a 95% interval, and agreement between reviewers.
+3. Do not tune thresholds on the clips you then use to report precision. The result describes only the reviewed sample, not events the detector missed.
 
 ## Code map
 
-- `web/pharos/index.html` the whole map app (MapLibre, OpenFreeMap buildings)
-- `nm.py` ground-point distance, tracking, event scoring, VSS client, W&B sentence check
-- `nm2.py` filters: vehicle must be moving, objects at similar depth, plausible speed
-- `nm3.py` scan and the Cosmos check; `nm5.py` server for the VM
-- `pharos/` the same logic split into modules with 13 tests (`python -m pytest -q`)
-- `design/` brand, logo, research
+- `web/pharos/index.html` the whole map app and review queue (MapLibre, OpenFreeMap buildings)
+- `nm.py` the detector (ground-point distance, tracking, scoring, filters), VSS client, W&B sentence check, scan
+- `nm3.py` Cosmos check; `nm5.py` server for the VM; `local_video.py` run the detector on a local video
+- `eval_labels.py` precision and agreement from exported labels
+- `tests/test_nm.py` (`python -m pytest -q`)
+- `design/` brand, logo, research; `IDEA.md` one-page brief
 
 ## Limits
 

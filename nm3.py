@@ -2,7 +2,7 @@
   python3 nm3.py scan | verify | serve
 """
 import base64, json, os, sys, urllib.parse as q, urllib.request as u
-import nm, nm2
+import nm
 
 
 def cosmos(api, src):
