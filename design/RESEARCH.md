@@ -13,14 +13,14 @@ Written Oct 9, 2026 during the build. Sources are linked; claims that come from 
    Sources: [FHWA, Algorithms for Surrogate Measures of Safety at Intersections](https://www.fhwa.dot.gov/publications/research/safety/03050/07.cfm); [Kittelson, Breaking Down Video-Based Conflict Monitoring](https://www.kittelson.com/ideas/breaking-down-video-based-conflict-monitoring/); [Real-time pedestrian risk from predicted PET (arXiv 2404.15635)](https://arxiv.org/pdf/2404.15635); [Can surrogate safety measures explain crash patterns at signalized intersections (ScienceDirect)](https://www.sciencedirect.com/science/article/abs/pii/S0022437526000654).
 3. **Fix the thing that is known to work.** Example: a leading pedestrian interval gives walkers a head start before turning cars move. Studies in the FHWA clearinghouse report roughly 10 to 19 percent fewer pedestrian-vehicle crashes, with one outlier study much higher. Source: [FHWA CMF Clearinghouse](https://cmfclearinghouse.fhwa.dot.gov/detail.php?facid=9903).
 4. **Manage speed.** General knowledge: speed decides how severe a crash is, which is why street redesign and speed enforcement sit at the centre of Vision Zero programmes. PharOS does not yet measure vehicle speed on live NYC cameras.
-5. **Watch driver and pedestrian attention.** In the NYC collision file since 2024, "Driver Inattention/Distraction" is the most common recorded cause by a wide margin (see the City panel). Cues such as a phone in hand are therefore worth surfacing as conditions that raise risk.
+5. **Watch driver and pedestrian attention.** In the NYC collision file since 2024, "Driver Inattention/Distraction" is the most common recorded cause by a wide margin (see the City panel). Attention is a street-design problem as much as a personal one (clear sightlines, signal timing, crossings that demand less attention), so PharOS leads with those and keeps caption mentions of a phone out of the main view.
 
 ## 2. What would give the earliest warning
 
 - **Trajectory, not position.** A car at 40 km/h that will reach a crosswalk in 1.5 seconds with someone in it is dangerous even if the two are still 25 metres apart. Straight-line projection of tracked vehicles and pedestrians for two to three seconds, and a check against the crosswalk polygon, flags future conflicts. This is how PharOS describes a "reckless vehicle": speed above what the street expects, and a projected path into a crossing that is occupied or about to be. Status: designed, not yet running on live feeds.
 - **Interaction measures** (TTC, PET, DRAC) between each vehicle and each person, as in section 1. Status: TTC and distance run on analysed footage; PET and DRAC are planned.
 - **Context that changes severity:** dusk and night, rain, sightlines blocked by parked vehicles or trucks, turning movements across a crosswalk.
-- **Pedestrian cues** (phone, headphones, dark clothing at dusk, running, crossing against the signal) from a vision-language model description of the scene. These are weak signals and are shown as cues, never as a score on a person.
+- **Caption mentions** (phone, headphones, clothing, running, crossing against the signal) from a vision-language model description of the scene. These are weak, unverified signals, kept in a collapsed section, and never a score on a person.
 
 ## 3. Real-time and open data options
 
@@ -28,7 +28,7 @@ Written Oct 9, 2026 during the build. Sources are linked; claims that come from 
 |--------|---------------|--------------------|
 | [NYC DOT traffic cameras](https://webcams.nyctmc.org/map) | Still images from about 1,000 cameras; 377 in Manhattan were listed as online | Image changes between requests a few seconds apart. Not video, so time to collision cannot be measured reliably from it. The camera list API does not allow browser cross-origin requests, so PharOS ships the list as a file. |
 | [NYC Open Data, Motor Vehicle Collisions](https://data.cityofnewyork.us/resource/h9gi-nx95) | Every police-reported crash with location, injuries and contributing factors | On Oct 9, 2026 the newest record was June 11, 2026, and the dataset notes that its automatic update was paused. The City panel states the date. |
-| [NYC DOT Traffic Speeds](https://data.cityofnewyork.us/resource/i4gi-tjb9) | Live link speeds and travel times | Latest record at check time was Oct 9, 2026 08:11. Useful to add a "traffic is faster than usual" signal. Not wired in yet. |
+| [NYC DOT Traffic Speeds](https://data.cityofnewyork.us/resource/i4gi-tjb9) | Live link speeds and travel times | Latest record at check time was Oct 9, 2026 08:11. Could show the current reported link speed with its data time. It cannot say "faster than usual" without a historical baseline or a posted limit, and the feed looked several hours stale at check time, so PharOS does not use it yet. Not wired in yet. |
 | VAST Builders Challenge index | 5-second street-camera segments with Cosmos captions and YOLO11 detections, searchable by words | Works only from the workshop VM. This is where near-miss measurement runs today. |
 
 Open question for a next step: a true real-time near-miss detector needs video at several frames per second. The NYC DOT feed offers stills, so a city-wide live detector would need either higher-rate video access from the city or placing a small camera node at chosen corners.
@@ -39,7 +39,7 @@ Open question for a next step: a true real-time near-miss detector needs video a
 |------------|--------|
 | 3D Manhattan map, camera nodes, crash heatmap, ranked intersections | Working on real data |
 | Per-intersection live image, history by hour, recorded causes, suggested fixes | Working on real data |
-| Walkthrough of the highest-risk intersections | Working |
+| Walkthrough of the camera areas with the most crash history | Working |
 | Candidate near misses from analysed footage with distance, closing speed, time to collision, Cosmos scene description, pedestrian cue tags | Working on the VM; accuracy not measured |
 | Trajectory projection to future crosswalk conflicts | Designed, not built |
 | Live detection on NYC DOT cameras | Not possible from stills; needs video |

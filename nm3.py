@@ -1,5 +1,5 @@
 """Adds a Cosmos Reason check to each candidate event and a verdict line to the web page.
-  python3 nm3.py scan | verify | serve
+  python3 nm3.py scan | verify
 """
 import base64, json, os, sys, urllib.parse as q, urllib.request as u
 import nm
@@ -33,7 +33,6 @@ def verify():
     json.dump(ev, open("events.json", "w"), indent=1)
 
 
-nm.PAGE = nm.PAGE.replace("<p><small>Cosmos caption", "<p><b>Cosmos Reason check: ${e.cosmos?e.cosmos.verdict:'n/a'}</b> <small>${e.cosmos?e.cosmos.text:''}</small></p><p><small>Cosmos caption")
 
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "scan"
@@ -41,5 +40,4 @@ if __name__ == "__main__":
         nm.scan(*(sys.argv[2:3] or ["new_york"]), *(sys.argv[3:4] or ["VID_"]), *(int(x) for x in sys.argv[4:5]))
     elif cmd == "verify":
         verify()
-    else:
-        nm.serve(*(int(x) for x in sys.argv[2:3]))
+

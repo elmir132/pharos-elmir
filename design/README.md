@@ -72,7 +72,7 @@ All are above the 4.5 to 1 level for normal text. The palette has not been check
 **One question per level.** The page answers three questions in order and never mixes them.
 1. *City:* where should I look first? (heat, ranked list, common causes)
 2. *Intersection:* what is happening here, and has it before? (live camera, history, causes)
-3. *Watch:* what is about to go wrong right now? (candidate near misses with evidence)
+3. *Review:* which candidate clips should a person look at, and are they right? (candidate near misses with evidence, and a way to mark them real or false)
 
 **Map first.** The home screen is a tilted 3D map of Manhattan because the problem is spatial and people already read cities that way. The tilt lets tall blocks show why a corner is hard to see around. A walkthrough (key W) flies the camera to the highest-risk intersections in turn so a viewer can take in the pattern without learning controls. Dragging the map stops it.
 
@@ -84,14 +84,14 @@ All are above the 4.5 to 1 level for normal text. The palette has not been check
 
 **Honest about uncertainty.** The first panel states the date the public collision file runs to. Distances are described as approximate. Cause is the first factor on the police report, and about half of reports leave it unspecified; the panel says so.
 
-**Accessibility.** Text contrast above 4.5 to 1, visible keyboard focus, keyboard shortcuts (W walkthrough, H heat, T tilt), buttons are real buttons, the live image has an alt text, motion respects `prefers-reduced-motion`, and the panel becomes a bottom sheet on a phone.
+**Accessibility.** Text contrast at least 4.5 to 1 (white text on crimson is 7.2 to 1, dark on ember 5.8, and the lighter pink used for crimson text on panels 6.8; an earlier version failed this and was corrected), visible keyboard focus, keyboard shortcuts (W walkthrough, H heat, T tilt), buttons are real buttons, the live image has an alt text, reduced motion is respected in code: map camera moves are instant and the automatic walkthrough is turned off when the system asks for reduced motion; tabs follow the arrow-key pattern, and the panel becomes a bottom sheet on a phone.
 
 **Language.** Plain words: "people injured", not "KSI". Numbers are rounded to what the data supports.
 
 ## 5. Ethics and privacy
 
 - PharOS never identifies a person. It does not do face recognition or read plates.
-- Pedestrian cues (phone in hand, headphones, dark clothing at dusk, running) are treated as **conditions that raise the chance of a conflict**, the same way fog or a blocked sightline does. They are never used to blame or to rank people.
+- Scene captions sometimes mention a phone, headphones or clothing. These mentions are unverified, are shown only inside a collapsed section for context, and are never used to blame or rank anyone. The review leads with measured distance, speed and timing, and with street design (sightlines, signal timing, speed).
 - Camera images are shown live from the public NYC traffic-camera network and are not stored by PharOS.
 - Every suggested fix is an idea for engineers to evaluate, not a diagnosis.
 

@@ -9,8 +9,9 @@ Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights 
 | Part | Status |
 |------|--------|
 | 3D Manhattan map, crash heatmap, 377 camera nodes, per-intersection panel, causes, suggested fixes, walkthrough (`web/pharos/`) | Working, public data only |
-| Near-miss detector: one implementation in `nm.py` (vehicle with pedestrian or cyclist, moving vehicle, sustained approach and separation, similar depth, plausible speed), 12 tests | Working; runs on VAST footage on the workshop VM and on any local video (`local_video.py`) |
-| Review queue in the Watch tab: mark each candidate real, false or unsure, add a reason, export CSV | Built (Mac); the VM copy is older and does not have it yet |
+| Near-miss detector: one implementation in `nm.py` (vehicle with a pedestrian, cyclist or motorcyclist, moving vehicle, sustained approach and separation, similar depth, plausible speed), 12 tests | Working; runs on VAST footage on the workshop VM and on any local video (`local_video.py`) |
+| Review tab: mark each candidate real, false or unsure, add a reason, export CSV | Built (Mac); the VM copy is older and does not have it yet |
+| Source health and honest failure states: each data source can fail alone, unknown is never shown as zero, stills are labelled as stills | Built and tested by blocking the collision source |
 | `eval_labels.py`: precision with a 95% interval, agreement and kappa between two reviewers | Built, tested on synthetic labels; no real labels yet |
 | W&B sentences with a check that every number was measured; Cosmos scene captions | Working on the VM |
 | Cosmos YES/NO check of each candidate (`nm3.py verify`) | Blocked: the GPU endpoint URL is not in the team config |
@@ -24,7 +25,7 @@ Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights 
     python3 -m http.server 8099
     open http://127.0.0.1:8099
 
-Open it in a normal, visible browser tab (a background tab never finishes drawing the WebGL map). It reads NYC Open Data collisions live; the camera list is `web/pharos/data/cameras.json` because the camera API does not allow browser requests. The collision file currently ends on 2026-06-11. The Watch tab reads `/events` (served by `nm5.py`) or `web/pharos/data/events.json` if you export one.
+Open it in a normal, visible browser tab (a background tab never finishes drawing the WebGL map). It reads NYC Open Data collisions live; the camera list is `web/pharos/data/cameras.json` because the camera API does not allow browser requests. The collision file currently ends on 2026-06-11. The Review tab reads `/events` (served by `nm5.py`) or `web/pharos/data/events.json` if you export one.
 
 ## Run the near-miss scan (workshop VM only)
 
@@ -38,7 +39,7 @@ The VAST, Cosmos, YOLO and W&B services are reachable only from the VM. In the V
 
 ## Measure precision
 
-1. Each reviewer opens the Watch tab, enters their initials, marks the clips, and presses Export CSV.
+1. Each reviewer opens the Review tab, enters their initials, marks the clips, and presses Export CSV.
 2. `python eval_labels.py A.csv B.csv` prints precision among the clips marked real or false, a 95% interval, and agreement between reviewers.
 3. Do not tune thresholds on the clips you then use to report precision. The result describes only the reviewed sample, not events the detector missed.
 

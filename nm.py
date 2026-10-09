@@ -1,13 +1,11 @@
 """PharOs near-miss agent, single file, stdlib only, for the VAST workshop VM.
 
   set -a; . /config/team-*.config; set +a
-  python3 nm.py scan [location] [filename_filter] [max_chunks]   # writes events.json
-  python3 nm.py serve [port]                                      # web page with clips
+  python3 nm.py [location] [filename_filter] [max_chunks]   # scan, writes events.json
 Distances are approximate metres from the ground-contact point of each box, scaled by typical object height.
 """
 import json, math, os, re, sys, urllib.error, urllib.parse as q, urllib.request as u
 from itertools import combinations
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 REF_H = {"person": 1.7, "bicycle": 1.7, "motorcycle": 1.5, "car": 1.5, "truck": 3.0, "bus": 3.2}
 VRU, VEH = {"person", "bicycle", "motorcycle"}, {"car", "truck", "bus"}
@@ -231,45 +229,5 @@ def scan(loc="new_york", flt="VID_", maxc=40):
         print(e["severity"], "+".join(e["classes"]), e["video"][:26], "seg", e["segment"], "t=%.1fs" % e["t_in_segment"], "dist", e["min_dist_m"], "m closing", e["peak_closing_mps"], "m/s ttc", e["ttc_s"])
 
 
-PAGE = """<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>PharOs</title>
-<style>body{margin:0;background:#0e1420;color:#e8edf7;font:16px system-ui}h1{padding:16px;margin:0}.c{display:grid;gap:10px;background:#172033;margin:12px;padding:12px;border-radius:12px}@media(min-width:760px){.c{grid-template-columns:420px 1fr}}video{width:100%;border-radius:8px}.s{background:#ff7a45;border-radius:99px;padding:2px 8px;font-weight:700}small{color:#9aa7bd}</style>
-<h1>PharOs: near misses in Manhattan camera footage</h1><div id=l></div><script>
-fetch('/events').then(r=>r.json()).then(es=>{l.innerHTML=es.map(e=>`<div class=c><video controls preload=metadata src="/clip?src=${encodeURIComponent(e.source)}#t=${Math.max(0,e.t_in_segment-1)}"></video><div><span class=s>severity ${e.severity}</span> <b>${e.classes.join(' + ')}</b> <small>${e.video} segment ${e.segment}, ${e.t_in_segment}s</small><p>${e.explanation.text} <small>(${e.explanation.source})</small></p><small>Measured: closest ${e.min_dist_m} m, closing ${e.peak_closing_mps} m/s, time to collision ${e.ttc_s===null?'n/a':e.ttc_s+' s'}</small><p><small>Cosmos caption: ${e.scene||'n/a'}</small></p></div></div>`).join('')})
-</script>"""
-
-
-def serve(port=8000):
-    api = API()
-
-    class H(BaseHTTPRequestHandler):
-        def do_GET(self):
-            p = q.urlparse(self.path)
-            if p.path == "/":
-                body, ct = PAGE.encode(), "text/html"
-            elif p.path == "/events":
-                body, ct = open("events.json", "rb").read(), "application/json"
-            elif p.path == "/clip":
-                src = q.parse_qs(p.query)["src"][0]
-                body = api.call("GET", "/api/v1/videos/stream?source=" + q.quote(src, safe=":/") + "&token=" + api.t, raw=True)
-                ct = "video/mp4"
-            else:
-                self.send_error(404)
-                return
-            self.send_response(200)
-            self.send_header("Content-Type", ct)
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-
-        def log_message(self, *a):
-            pass
-    print("serving on port", port)
-    ThreadingHTTPServer(("0.0.0.0", port), H).serve_forever()
-
-
 if __name__ == "__main__":
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "scan"
-    if cmd == "scan":
-        scan(*(sys.argv[2:3] or ["new_york"]), *(sys.argv[3:4] or ["VID_"]), *(int(x) for x in sys.argv[4:5]))
-    else:
-        serve(*(int(x) for x in sys.argv[2:3]))
+    scan(*(sys.argv[1:2] or ["new_york"]), *(sys.argv[2:3] or ["VID_"]), *(int(x) for x in sys.argv[3:4]))
