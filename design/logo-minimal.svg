@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-labelledby="title desc">
+  <title id="title">PharOS minimalist logo</title>
+  <desc id="desc">A geometric lighthouse emitting two amber beams beside the PharOS wordmark.</desc>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 31H35M61 31H88" stroke="#FFB703" stroke-width="4"/>
+    <circle cx="48" cy="31" r="7" fill="#FFB703" stroke="#FFB703" stroke-width="3"/>
+    <path d="M41 44H55L60 49V59L55 64H41L36 59V49Z" stroke="#E9EEF7" stroke-width="4"/>
+    <rect x="34" y="64" width="28" height="20" rx="2" stroke="#E9EEF7" stroke-width="4"/>
+  </g>
+
+  <text x="108" y="61" fill="#E9EEF7" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="500" letter-spacing="1.5">Phar<tspan fill="#FFB703" font-weight="650">OS</tspan></text>
+</svg>

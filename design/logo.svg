@@ -1,1 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 96" role="img" aria-label="PharOS"><g><defs><linearGradient id="dl" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".75"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient><linearGradient id="dr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".75"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient></defs><polygon points="41,33 4,25 4,41" fill="url(#dl)"/><polygon points="55,33 92,25 92,41" fill="url(#dr)"/><rect x="33" y="66" width="30" height="20" rx="1.5" fill="#E9EEF7"/><polygon points="43.5,44 52.5,44 58,49.5 58,56.5 52.5,62 43.5,62 38,56.5 38,49.5" fill="#E9EEF7"/><circle cx="48" cy="33" r="7" fill="#FFB703"/></g><text x="112" y="61" font-family="'Helvetica Neue',Inter,Arial,sans-serif" font-size="40" font-weight="500" letter-spacing="1.5" fill="#E9EEF7">Phar<tspan fill="#FFB703">OS</tspan></text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 96" role="img" aria-labelledby="title desc">
+  <title id="title">PharOS</title>
+  <desc id="desc">A minimal three-tier lighthouse mark beside the PharOS wordmark, with soft amber beams.</desc>
+  <defs>
+    <linearGradient id="beam-left" gradientUnits="userSpaceOnUse" x1="40" y1="0" x2="4" y2="0">
+      <stop offset="0" stop-color="#FFB703" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#FFB703" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="beam-right" gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="92" y2="0">
+      <stop offset="0" stop-color="#FFB703" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#FFB703" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g aria-hidden="true">
+    <path d="M41 26 8 16v30l33-10z" fill="url(#beam-left)"/>
+    <path d="m55 26 33-10v30L55 36z" fill="url(#beam-right)"/>
+    <rect x="33" y="61" width="30" height="30" fill="#E9EEF7"/>
+    <path d="M43 40h10l5 5v10l-5 5H43l-5-5V45z" fill="#E9EEF7"/>
+    <circle cx="48" cy="31" r="7" fill="#FFB703"/>
+  </g>
+
+  <text x="108" y="61" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="500" letter-spacing="1.5" fill="#E9EEF7">Phar<tspan fill="#FFB703" font-weight="650">OS</tspan></text>
+</svg>
