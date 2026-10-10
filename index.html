@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PharOS</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--night:#f6f7f1;--harbor:#fafbf6;--panel:rgba(250,251,246,.95);--line:#dce3d7;--fog:#183738;--mute:#647b70;--beacon:#c4954d;--ember:#bd694a;--sea:#216b65}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--night);color:var(--fog);font:14px/1.45 "DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+#map{position:absolute;inset:0}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+.brand{position:absolute;left:14px;top:14px;display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 14px 8px 8px;backdrop-filter:blur(8px);box-shadow:0 4px 18px #294d3818;z-index:3}
+.brand svg{width:44px;height:44px}.brand b{font-size:20px;letter-spacing:.4px}.brand b i{font-style:normal;color:#bd694a}
+.brand small{display:block;color:var(--mute);font-size:12px;margin-top:-2px}
+.tools{position:absolute;left:14px;top:84px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.tool{background:var(--panel);color:var(--fog);border:1px solid var(--line);border-radius:12px;padding:9px 12px;text-align:left;min-width:150px;backdrop-filter:blur(8px)}
+.tool[aria-pressed="true"]{border-color:var(--sea);box-shadow:0 0 0 1px var(--sea) inset;background:#eef3ec}
+.tool kbd{color:var(--mute);font-size:11px;float:right}
+.legend{position:absolute;left:14px;bottom:28px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;z-index:3;font-size:12px;max-width:230px}
+.legend .ramp{height:8px;border-radius:99px;background:linear-gradient(90deg,#f2d16b,#f0a23a,#dc2f2f,#9b1020,#520a16);margin:6px 0 4px}
+.legend div{display:flex;justify-content:space-between;color:var(--mute)}
+aside{position:absolute;right:0;top:0;bottom:0;width:410px;max-width:100%;background:var(--panel);border-left:1px solid var(--line);backdrop-filter:blur(10px);z-index:4;display:flex;flex-direction:column}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tab{flex:1;background:none;border:0;color:var(--mute);padding:13px 6px;border-bottom:3px solid transparent;font-weight:600}
+.tab[aria-selected="true"]{color:var(--fog);border-bottom-color:var(--sea)}
+.pane{overflow:auto;padding:16px;flex:1}
+h2{margin:0 0 4px;font-size:18px}h3{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
+.muted{color:var(--mute)}.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.stat{background:var(--harbor);border:1px solid var(--line);border-radius:10px;padding:8px 10px}.stat b{display:block;font-size:20px}.stat small{color:var(--mute)}
+.bar{display:grid;grid-template-columns:150px 1fr 44px;gap:8px;align-items:center;margin:5px 0;font-size:13px}
+.bar i{display:block;height:8px;border-radius:99px;background:linear-gradient(90deg,#f0a23a,#dc2f2f)}
+.bar span:last-child{text-align:right;color:var(--mute)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--harbor);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;width:100%;color:var(--fog);text-align:left}
+.row:hover{border-color:var(--sea)}
+.score{min-width:44px;text-align:center;border-radius:8px;padding:2px 6px;font-weight:700;color:#183738}.score.hi{color:#fff}
+.live{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;border:1px solid var(--line)}
+.live img{width:100%;height:100%;object-fit:cover;display:block}
+.badge{position:absolute;left:8px;top:8px;background:#f0a23a;color:#183738;font-weight:700;font-size:11px;padding:2px 8px;border-radius:99px;letter-spacing:.08em}
+.badge.off{background:#5a6780;color:#fff}
+.stamp{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);padding:1px 7px;border-radius:6px;font-size:11px}
+.steps li{margin:8px 0}.steps small{color:var(--mute)}a{color:var(--sea)}
+.hist{display:flex;align-items:flex-end;gap:2px;height:46px;margin:6px 0}.hist i{flex:1;background:#dc2f2f;border-radius:2px 2px 0 0;min-height:2px}
+.cue{display:inline-block;background:var(--harbor);border:1px solid var(--line);border-radius:99px;padding:1px 9px;margin:2px 4px 2px 0;font-size:12px}
+.card{background:var(--harbor);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}
+.card video{width:100%;border-radius:8px;background:#000}
+.note{color:var(--mute);font-size:12px;margin-top:14px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.srcrow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.srcrow span{border:1px solid var(--line);border-radius:99px;padding:1px 9px;font-size:12px;color:var(--mute)}.srcrow .bad{border-color:var(--beacon);color:var(--beacon)}.warn{background:var(--harbor);border:1px solid var(--beacon);border-radius:10px;padding:10px;margin:10px 0}.warn button{margin-top:8px}
+@media(max-width:760px){aside{top:auto;height:56vh;width:100%;border-left:0;border-top:1px solid var(--line)}.tools{top:76px}.legend{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.maplibregl-ctrl-top-right{right:420px!important}
+@media(max-width:760px){.maplibregl-ctrl-top-right{right:0!important}}
+</style>
+</head>
+<body>
+<div id="map" aria-label="3D map of Manhattan with traffic camera nodes and a crash heatmap"></div>
+
+<div class="brand">
+  <svg viewBox="0 0 96 96" aria-hidden="true"><defs><linearGradient id="hl" gradientUnits="userSpaceOnUse" x1="41" y1="0" x2="8" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".72"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient><linearGradient id="hr" gradientUnits="userSpaceOnUse" x1="55" y1="0" x2="88" y2="0"><stop offset="0" stop-color="#FFB703" stop-opacity=".72"/><stop offset="1" stop-color="#FFB703" stop-opacity="0"/></linearGradient></defs><path d="M41 26 8 16v30l33-10z" fill="url(#hl)"/><path d="m55 26 33-10v30L55 36z" fill="url(#hr)"/><rect x="33" y="61" width="30" height="30" fill="#183738"/><path d="M43 40h10l5 5v10l-5 5H43l-5-5V45z" fill="#183738"/><circle cx="48" cy="31" r="7" fill="#FFB703"/></svg>
+  <div><b>Phar<i>OS</i></b><small>A lighthouse for city intersections</small></div>
+</div>
+
+<div class="tools" role="group" aria-label="Map tools">
+  <button class="tool" id="tTour" aria-pressed="false">Walkthrough <kbd>W</kbd></button>
+  <button class="tool" id="tHeat" aria-pressed="true">Crash heatmap <kbd>H</kbd></button>
+  <button class="tool" id="t3d" aria-pressed="true">3D tilt <kbd>T</kbd></button>
+</div>
+
+<div class="legend" aria-label="Legend">
+  <b>Crash history near a camera</b>
+  <div class="ramp"></div><div><span>lower burden</span><span>higher burden</span></div>
+  <p class="muted" style="margin:6px 0 0">Crash burden over the past 12 months: collisions + 2× injuries + 10× deaths within 120 m. Police-reported history, not a prediction, and not adjusted for traffic volume.</p>
+</div>
+
+<aside aria-label="Insights">
+  <div class="tabs" role="tablist" aria-label="Insight panels">
+    <button class="tab" role="tab" id="tabO" aria-selected="true" aria-controls="pO" tabindex="0" data-p="pO">City</button>
+    <button class="tab" role="tab" id="tabN" aria-selected="false" aria-controls="pN" tabindex="-1" data-p="pN">Camera area</button>
+    <button class="tab" role="tab" id="tabW" aria-selected="false" aria-controls="pW" tabindex="-1" data-p="pW">Review</button>
+  </div>
+  <div class="pane" id="pO" role="tabpanel" aria-labelledby="tabO" tabindex="0"></div>
+  <div class="pane" id="pN" role="tabpanel" aria-labelledby="tabN" tabindex="0" hidden></div>
+  <div class="pane" id="pW" role="tabpanel" aria-labelledby="tabW" tabindex="0" hidden></div>
+</aside>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const CRASH="https://data.cityofnewyork.us/resource/h9gi-nx95.json";
+let SINCE="2025-06-12T00:00:00",XS=[],HOURS=null;
+const RAMP=["#f2d16b","#f0a23a","#dc2f2f","#9b1020","#520a16"];
+const RAMPFN=(v,lo,mid)=>v>=mid[3]?RAMP[4]:v>=mid[2]?RAMP[3]:v>=mid[1]?RAMP[2]:v>=mid[0]?RAMP[1]:RAMP[0];
+const STEPS={
+ "Driver Inattention/Distraction":[["Leading pedestrian interval","Walkers get a head start before turning cars move. FHWA studies report about 10 to 19 percent fewer pedestrian-vehicle crashes."],["Clear crosswalk markings and signal visibility","Make the crossing obvious to a driver who looks up late."]],
+ "Failure to Yield Right-of-Way":[["Leading pedestrian interval","Separates the walking phase from turning traffic."],["Daylight the corner","Remove parked cars near the crosswalk so drivers and walkers see each other earlier."],["Curb extensions","Shorter crossings and slower turns."]],
+ "Following Too Closely":[["Signal timing review","Smoother progression reduces sudden stops."],["Speed management","Lower speeds shorten stopping distance."]],
+ "Passing Too Closely":[["Clear lane markings and loading rules","Fewer drivers squeezing past double-parked vehicles."]],
+ "Passing or Lane Usage Improper":[["Lane narrowing or a protected bike lane","Makes the safe path the obvious one."]],
+ "Backing Unsafely":[["Curbside loading rules and enforcement","Less backing into crossings."]],
+ "Traffic Control Disregarded":[["Signal visibility and retiming","Check sightlines and yellow and all-red times."],["Automated enforcement review","Where red-light running is common."]],
+ "Unsafe Speed":[["Speed cameras and lane narrowing","Speed decides how bad a crash is."],["Raised crosswalks","Slow vehicles right where people cross."]],
+ "Pedestrian/Bicyclist/Other Pedestrian Error/Confusion":[["Countdown signals and high-visibility crosswalks","Clearer cues for people on foot."]]
+};
+let map,cams=[],grid=[],selected=null,liveTimer=null,tourOn=false,tourTimer=null;
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches,dur=ms=>RM?0:ms;
+const SRC={collisions:null,cameras:null,causes:null,candidates:null};
+const txtColor=p=>p>=.55?colorFor(p):"#8a6a1f";
+const fmtH=h=>(h%12||12)+(h<12?" am":" pm");
+function briefText(c,d){return [
+  "PharOS camera-area brief: "+c.name,
+  "Records: NYC Open Data, Motor Vehicle Collisions - Crashes, Manhattan, "+SINCE.slice(0,10)+" to "+(window.asOf||"unknown date")+" (file may not be current).",
+  "Area: 120 m circle around the NYC DOT camera at "+c.lat.toFixed(5)+", "+c.lon.toFixed(5)+". Only records with a location are counted. Not adjusted for traffic volume.",
+  "Collisions: "+d.n+"; people injured: "+d.inj+"; pedestrians injured: "+d.ped+"; people killed: "+d.kil+".",
+  "Crash-history percentile among "+cams.length+" camera areas: "+Math.round(c.pct*100)+".",
+  "Most collisions by hour: "+(d.peaks||"none recorded")+".",
+  "Most common recorded causes (first factor on the police report; about half of reports are unspecified): "+(d.fl.map(x=>x[0]+" ("+x[1]+")").join("; ")||"not enough recorded")+".",
+  "Countermeasures to evaluate (ideas, not a diagnosis or a proven effect here): "+(d.steps.slice(0,5).map(x=>x[0]).join("; ")||"no clear pattern")+".",
+  "Caveats: collision location is as recorded by police; the camera still is not part of this brief; PharOS is a screening aid for engineers.",
+  "Sources: https://data.cityofnewyork.us/resource/h9gi-nx95 ; https://webcams.nyctmc.org/map"
+].join("\n")}
+
+
+const hav=(a,b,c,d)=>{const R=6371000,t=x=>x*Math.PI/180,dl=t(c-a),dn=t(d-b);const h=Math.sin(dl/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+const colorFor=p=>p>=.93?RAMP[4]:p>=.8?RAMP[3]:p>=.55?RAMP[2]:p>=.25?RAMP[1]:RAMP[0];
+const XCOL=n=>n>=17?RAMP[4]:n>=12?RAMP[3]:n>=8?RAMP[2]:n>=4?RAMP[1]:RAMP[0];
+
+async function soc(params){const u=new URL(CRASH);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u);if(!r.ok)throw new Error("data "+r.status);return r.json()}
+
+async function loadData(){
+  const ok=r=>r.status==="fulfilled";
+  try{const m0=await soc({"$select":"max(crash_date) as m","$where":"borough='MANHATTAN'"});if(m0[0]&&m0[0].m){const end=Date.parse(m0[0].m.slice(0,10)+"T00:00:00Z");SINCE=new Date(end-364*864e5).toISOString().slice(0,10)+"T00:00:00"}}catch(e){}
+  const [g,c,f,mx,xr,hr]=await Promise.allSettled([
+    soc({"$select":"round(latitude,4) as la, round(longitude,4) as lo, count(*) as n, sum(number_of_persons_injured) as inj, sum(number_of_pedestrians_injured) as ped, sum(number_of_persons_killed) as k","$where":`borough='MANHATTAN' AND latitude>40 AND crash_date>'${SINCE}'`,"$group":"la,lo","$limit":"50000"}),
+    fetch("data/cameras.json").then(r=>{if(!r.ok)throw new Error("camera list "+r.status);return r.json()}),
+    soc({"$select":"contributing_factor_vehicle_1 as f, count(*) as n","$where":`borough='MANHATTAN' AND crash_date>'${SINCE}'`,"$group":"f","$order":"n DESC","$limit":"14"}),
+    soc({"$select":"max(crash_date) as m","$where":"borough='MANHATTAN'"}),
+    soc({"$select":"collision_id,on_street_name,cross_street_name,off_street_name,number_of_persons_injured,number_of_persons_killed,latitude,longitude","$where":`borough='MANHATTAN' AND latitude>40 AND on_street_name IS NOT NULL AND (cross_street_name IS NOT NULL OR off_street_name IS NOT NULL) AND crash_date>'${SINCE}'`,"$limit":"50000"}),
+    soc({"$select":"crash_time,count(*) as n","$where":`borough='MANHATTAN' AND crash_time IS NOT NULL AND crash_date>'${SINCE}'`,"$group":"crash_time","$limit":"5000"})
+  ]);
+  const tc=t=>String(t).trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/\b(\d+)(St|Nd|Rd|Th)\b/g,(m,a,b)=>a+b.toLowerCase());
+  if(ok(xr)){const mp=new Map(),seen=new Set(),clean=t=>String(t||"").replace(/\s+/g," ").trim();for(const r of xr.value){if(seen.has(r.collision_id))continue;seen.add(r.collision_id);const a=clean(r.on_street_name),b=clean(r.cross_street_name||r.off_street_name);if(!a||!b||/^\d+ [A-Z]/.test(b)||a===b||!isFinite(+r.latitude))continue;const key=[a,b].sort().join("|"),inj=+r.number_of_persons_injured||0,k=+r.number_of_persons_killed||0,e=mp.get(key)||{n:0,ic:0,inj:0,k:0,sla:0,slo:0,names:[tc(a),tc(b)].sort()};e.n++;e.ic+=inj>0?1:0;e.inj+=inj;e.k+=k;e.sla+=+r.latitude;e.slo+=+r.longitude;mp.set(key,e)}
+    XS=[...mp.values()].filter(e=>e.ic>0).map(e=>({name:e.names.join(" & "),ic:e.ic,n:e.n,inj:e.inj,k:e.k,lat:e.sla/e.n,lon:e.slo/e.n})).sort((a,b)=>b.ic-a.ic||b.n-a.n||a.name.localeCompare(b.name)).slice(0,100);XS.forEach((x,i)=>x.rank=i+1)}
+  if(ok(hr)){HOURS=Array(24).fill(0);for(const r of hr.value){const h=parseInt(String(r.crash_time).split(":")[0],10);if(h>=0&&h<24)HOURS[h]+=+r.n}}
+  SRC.intersections=ok(xr)&&XS.length?{ok:true,text:"Intersections: "+XS.length+" ranked"}:{ok:false,text:"Intersections: unavailable"};
+  window.asOf=ok(mx)&&mx.value[0]&&mx.value[0].m?mx.value[0].m.slice(0,10):"";
+  grid=ok(g)?g.value.map(x=>({la:+x.la,lo:+x.lo,n:+x.n,inj:+x.inj||0,ped:+x.ped||0,k:+x.k||0,w:(+x.n)+2*(+x.inj||0)+10*(+x.k||0)})).filter(x=>isFinite(x.la)&&isFinite(x.lo)):[];
+  cams=ok(c)?c.value.filter(x=>x.area==="Manhattan"&&String(x.isOnline)==="true"&&isFinite(x.latitude)).map(x=>({id:x.id,name:x.name,lat:x.latitude,lon:x.longitude,img:x.imageUrl})):[];
+  SRC.collisions=ok(g)?{ok:true,text:"Collision records: through "+(window.asOf||"unknown date")}:{ok:false,text:"Collision records: unavailable"};
+  SRC.cameras=ok(c)&&cams.length?{ok:true,text:"Camera list: "+cams.length+" cameras"}:{ok:false,text:"Camera list: unavailable"};
+  SRC.causes=ok(f)?{ok:true,text:"Cause counts: ok"}:{ok:false,text:"Cause counts: unavailable"};
+  for(const cam of cams){let s=0,n=0,i=0,p=0,k=0;for(const q of grid){if(Math.abs(q.la-cam.lat)>.0016||Math.abs(q.lo-cam.lon)>.0022)continue;if(hav(cam.lat,cam.lon,q.la,q.lo)<=120){s+=q.w;n+=q.n;i+=q.inj;p+=q.ped;k+=q.k}}cam.score=s;cam.n=n;cam.inj=i;cam.ped=p;cam.k=k}
+  const sorted=[...cams].sort((a,b)=>a.score-b.score);sorted.forEach((c,i)=>c.pct=ok(g)?i/(sorted.length-1||1):-1);
+  return ok(f)?f.value:[];
+}
+
+function nodesGeo(){return{type:"FeatureCollection",features:cams.map(c=>({type:"Feature",geometry:{type:"Point",coordinates:[c.lon,c.lat]},properties:{id:c.id,name:c.name,pct:c.pct,score:c.score}}))}}
+function heatGeo(){return{type:"FeatureCollection",features:grid.map(q=>({type:"Feature",geometry:{type:"Point",coordinates:[q.lo,q.la]},properties:{w:q.w}}))}}
+
+function noMap(){map={getSource:()=>({setData(){}}),flyTo(){},easeTo(){},getBearing:()=>0,setLayoutProperty(){},on(){},addControl(){}};$("map").innerHTML='<p style="margin:120px 24px;max-width:420px;color:#93A1BA">The 3D map needs WebGL, which this browser does not have. The panels on the right still work: pick an intersection from the list.</p>';window.mapReady=Promise.resolve()}
+function initMap(){
+  try{map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/liberty",center:[-73.9857,40.7484],zoom:14.6,pitch:62,bearing:-28,maxPitch:80,attributionControl:{compact:true}})}catch(e){noMap();return}
+  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
+  window.mapReady=new Promise(res=>map.on("load",()=>{
+    map.addSource("heat",{type:"geojson",data:heatGeo()});
+    map.addSource("nodes",{type:"geojson",data:nodesGeo()});
+    map.addSource("sel",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
+    const first=map.getStyle().layers.find(l=>l.type==="symbol")?.id;
+    map.addLayer({id:"heat",type:"heatmap",source:"heat",maxzoom:18,paint:{
+      "heatmap-weight":["interpolate",["linear"],["get","w"],0,0,3,.55,20,1],
+      "heatmap-intensity":["interpolate",["linear"],["zoom"],11,1.1,15,2.6,18,4],
+      "heatmap-radius":["interpolate",["linear"],["zoom"],11,10,15,30,18,60],
+      "heatmap-color":["interpolate",["linear"],["heatmap-density"],0,"rgba(242,209,107,0)",.12,"rgba(242,209,107,.5)",.32,"rgba(240,162,58,.78)",.55,"rgba(220,47,47,.88)",.78,"rgba(155,16,32,.94)",1,"rgba(82,10,22,.97)"],
+      "heatmap-opacity":.86}},first);
+    map.addLayer({id:"halo",type:"circle",source:"nodes",paint:{"circle-radius":["interpolate",["linear"],["get","pct"],-1,8,0,10,1,22],"circle-color":["step",["get","pct"],"#9aa79b",0,RAMP[0],.25,RAMP[1],.55,RAMP[2],.8,RAMP[3],.93,RAMP[4]],"circle-opacity":.22,"circle-blur":.6}});
+    map.addLayer({id:"nodes",type:"circle",source:"nodes",paint:{"circle-radius":["interpolate",["linear"],["get","pct"],-1,5,0,5,1,11],"circle-color":["step",["get","pct"],"#9aa79b",0,RAMP[0],.25,RAMP[1],.55,RAMP[2],.8,RAMP[3],.93,RAMP[4]],"circle-stroke-color":"#fffdf6","circle-stroke-width":2}});
+    map.addLayer({id:"sel",type:"circle",source:"sel",paint:{"circle-radius":20,"circle-color":"rgba(0,0,0,0)","circle-stroke-color":"#216b65","circle-stroke-width":3}});
+    map.addLayer({id:"labels",type:"symbol",source:"nodes",minzoom:15.5,layout:{"text-field":["get","name"],"text-size":11,"text-offset":[0,1.6],"text-anchor":"top","text-font":["Noto Sans Regular"]},paint:{"text-color":"#183738","text-halo-color":"#fffdf6","text-halo-width":1.5}});
+    map.on("click","nodes",e=>pick(e.features[0].properties.id,false));
+    map.on("mouseenter","nodes",()=>map.getCanvas().style.cursor="pointer");
+    map.on("mouseleave","nodes",()=>map.getCanvas().style.cursor="");
+    map.on("styleimagemissing",e=>{if(!map.hasImage(e.id))map.addImage(e.id,{width:1,height:1,data:new Uint8Array(4)})});map.on("dragstart",stopTour);res();
+  }));
+}
+
+const TABS=[...document.querySelectorAll(".tab")];
+function setTab(id){TABS.forEach(t=>{const on=t.dataset.p===id;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});["pO","pN","pW"].forEach(p=>$(p).hidden=p!==id)}
+TABS.forEach((t,i)=>{t.onclick=()=>setTab(t.dataset.p);t.onkeydown=e=>{let j=null;if(e.key==="ArrowRight")j=(i+1)%3;else if(e.key==="ArrowLeft")j=(i+2)%3;else if(e.key==="Home")j=0;else if(e.key==="End")j=2;if(j!==null){e.preventDefault();TABS[j].focus();setTab(TABS[j].dataset.p)}}});
+const srcRow=()=>`<div class="srcrow" id="srcRow" role="list" aria-label="Data sources">${Object.values(SRC).filter(Boolean).map(x=>`<span role="listitem" class="${x.ok?"":"bad"}">${esc(x.text)}</span>`).join("")}</div>`;
+const refreshSrc=()=>{const el=$("srcRow");if(el)el.outerHTML=srcRow()};
+
+function nearestCam(c){let b=null,bd=1e9;for(const q of cams){const d=hav(c.lat,c.lon,q.lat,q.lon);if(d<bd){bd=d;b=q}}return b&&bd<=180?Object.assign({},b,{dist:Math.round(bd)}):null}
+const GUIDE="https://highways.dot.gov/safety/proven-safety-countermeasures",TURN="https://www.nyc.gov/html/dot/html/pedestrians/turn-calming.shtml";
+function hoursChart(h,label){if(!h)return'<p class="muted">Hour counts unavailable.</p>';const mx=Math.max(...h,1),best=h.indexOf(Math.max(...h));return `<div class="hist" role="img" aria-label="${esc(label)} by hour of day. Busiest hour ${fmtH(best)}">${h.map((v,i)=>`<i title="${fmtH(i)}, ${v.toLocaleString()}" style="height:${Math.round(100*v/mx)}%;${i===best?"background:#9b1020":""}"></i>`).join("")}</div><div class="muted" style="display:flex;justify-content:space-between;font-size:11px" aria-hidden="true"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>11 pm</span></div><p class="note" style="margin-top:4px">Busiest hour: ${fmtH(best)} to ${fmtH((best+1)%24)}. All reported crashes with a known time, over the period above. Totals, not live and not adjusted for traffic.</p>`}
+function xRows(list){return list.map(x=>`<button class="row" data-x="${x.rank}"><span><b style="color:var(--mute);font-weight:500">${String(x.rank).padStart(2,"0")}</b>&nbsp; ${esc(x.name)}<br><small class="muted">${x.ic} injury crashes</small></span><span class="score${x.ic>=8?" hi":""}" style="background:${XCOL(x.ic)}">${x.ic}</span></button>`).join("")}
+function overview(f){
+  const tot=grid.reduce((a,q)=>({n:a.n+q.n,i:a.i+q.inj,p:a.p+q.ped,k:a.k+q.k}),{n:0,i:0,p:0,k:0});
+  const fs=f.filter(x=>x.f&&x.f!=="Unspecified").slice(0,7),mx=Math.max(1,...fs.map(x=>+x.n));
+  const have=SRC.collisions&&SRC.collisions.ok,end=window.asOf||"an unknown date",start=SINCE.slice(0,10);
+  $("pO").innerHTML=`<h2>Manhattan, ${esc(start)} to ${esc(end)}</h2><p class="muted">Where people were hurt in the past 12 months of police-reported crashes, and what the records say caused it. The public collision file runs through ${esc(end)}. Dots are NYC traffic-camera locations.</p>${srcRow()}
+  ${have?`<div class="grid4"><div class="stat"><b>${tot.n.toLocaleString()}</b><small>geocoded collisions</small></div><div class="stat"><b>${tot.i.toLocaleString()}</b><small>people injured</small></div><div class="stat"><b>${tot.p.toLocaleString()}</b><small>pedestrians injured</small></div><div class="stat"><b>${tot.k}</b><small>people killed</small></div></div><p class="note">Totals count only records that have a location.</p>`:'<div class="warn"><b>Collision records unavailable.</b><br>The request to NYC Open Data failed, so no totals or heatmap are shown. Camera locations and live stills still work.</div>'}
+  <h3>Explore intersections</h3><input id="xq" type="search" placeholder="Find a street, avenue or camera" aria-label="Find an intersection or camera" style="width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--fog);font:inherit"><p class="note" style="margin:4px 0 6px">Ranked by police-reported injury crashes at the corner. Where people were hurt, not a risk score.</p><div id="xl"></div>
+  <h3>When it happens</h3>${hoursChart(HOURS,"Manhattan crash reports")}
+  <h3>Most common recorded causes</h3>${fs.length?fs.map(x=>`<div class="bar"><span>${esc(x.f)}</span><i style="width:${Math.max(6,Math.round(100*x.n/mx))}%"></i><span>${(+x.n).toLocaleString()}</span></div>`).join(""):'<p class="muted">Cause counts unavailable.</p>'}
+  <p class="note">Cause is the first contributing factor recorded by police. About half of reports list it as unspecified, so treat the ranking as a guide. Press W for a walkthrough.</p>
+  <p class="note">Sources: <a href="https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95" target="_blank" rel="noopener">NYC Open Data collisions</a>, <a href="https://webcams.nyctmc.org/map" target="_blank" rel="noopener">NYC DOT cameras</a>, <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a>. Intersections are grouped by cross-street pair at the average reported position. All times Eastern.</p>`;
+  const list=$("xl");let all=false;
+  const bind=()=>list.querySelectorAll(".row").forEach(b=>b.onclick=()=>{if(b.dataset.x){const x=XS[+b.dataset.x-1];openPlace(Object.assign({xs:true,pct:-1,id:"x"+x.rank},x),true)}else pick(b.dataset.id,true)});
+  const draw=()=>{const q=($("xq").value||"").trim().toLowerCase();
+    if(!XS.length&&!q){list.innerHTML='<p class="muted">Intersection ranking unavailable.</p>';return}
+    if(!q){list.innerHTML=xRows(all?XS:XS.slice(0,10))+(XS.length>10?`<button class="tool" id="xmore" style="min-width:0;margin-top:6px">${all?"Show top 10":"View all "+XS.length+" intersections"}</button>`:"");const m=$("xmore");if(m)m.onclick=()=>{all=!all;draw()};bind();return}
+    const xs=XS.filter(x=>x.name.toLowerCase().includes(q)).slice(0,8),cs=cams.filter(c=>c.name.toLowerCase().includes(q)).slice(0,6);
+    list.innerHTML=(xs.length?xRows(xs):"")+cs.map(c=>`<button class="row" data-id="${esc(c.id)}"><span>${esc(c.name)}<br><small class="muted">camera</small></span></button>`).join("")||'<p class="muted">No match.</p>';bind()};
+  $("xq").oninput=draw;draw();
+}
+
+function pick(id,fly){const c=cams.find(x=>x.id===id);if(c)openPlace(c,fly)}
+async function openPlace(c,fly){
+  const id=c.id;selected=c;setTab("pN");
+  map.getSource("sel").setData({type:"FeatureCollection",features:[{type:"Feature",geometry:{type:"Point",coordinates:[c.lon,c.lat]},properties:{}}]});
+  if(fly)map.flyTo({center:[c.lon,c.lat],zoom:17.3,pitch:68,bearing:(map.getBearing()+35)%360,duration:dur(2600),essential:true});
+  $("pN").innerHTML=`<h2>${esc(c.name)}</h2><p class="muted">Loading records...</p>`;
+  clearInterval(liveTimer);
+  let rows=null;try{rows=await soc({"$select":"crash_date,crash_time,number_of_persons_injured,number_of_pedestrians_injured,number_of_persons_killed,contributing_factor_vehicle_1","$where":`within_circle(location,${c.lat},${c.lon},120) AND crash_date>'${SINCE}'`,"$limit":"2000"})}catch(e){rows=null}
+  if(selected!==c)return;
+  const failed=rows===null;if(failed)rows=[];
+  const hrs=Array(24).fill(0),fac={};let inj=0,ped=0,kil=0;
+  for(const r of rows){const h=parseInt(String(r.crash_time||"").split(":")[0],10);if(h>=0&&h<24)hrs[h]++;inj+=+r.number_of_persons_injured||0;ped+=+r.number_of_pedestrians_injured||0;kil+=+r.number_of_persons_killed||0;const f=r.contributing_factor_vehicle_1;if(f&&f!=="Unspecified")fac[f]=(fac[f]||0)+1}
+  const fl=Object.entries(fac).sort((a,b)=>b[1]-a[1]).slice(0,4),hm=Math.max(...hrs,1);
+  const steps=[];const seen=new Set();for(const [f] of fl){for(const s of STEPS[f]||[]){if(!seen.has(s[0])){seen.add(s[0]);steps.push([s[0],s[1],f])}}}
+  if(ped>=2&&!seen.has("Leading pedestrian interval"))steps.unshift(["Shorter crossings or a refuge","Several pedestrians were hurt here.","pedestrian injuries"]);
+  const known=c.pct>=0,pct=Math.round(c.pct*100),cam=c.img?c:nearestCam(c);
+  const peaks=hrs.map((v,h)=>[h,v]).sort((x,y)=>y[1]-x[1]).filter(x=>x[1]>0).slice(0,3).map(x=>`${fmtH(x[0])} (${x[1]})`).join(", ");
+  const body=failed?`<div class="warn"><b>Records unavailable.</b><br>The collision query for this camera area failed. This is not the same as zero collisions.<br><button class="tool" id="retry" style="min-width:0">Try again</button></div>`:`
+  <h3>When it happens</h3><div class="hist" role="img" aria-label="Collisions by hour of day. ${peaks?"Most in: "+esc(peaks):"No collisions recorded."}">${hrs.map((v,h)=>`<i title="${fmtH(h)}, ${v}" style="height:${Math.round(100*v/hm)}%"></i>`).join("")}</div><div class="muted" style="display:flex;justify-content:space-between;font-size:11px" aria-hidden="true"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>11 pm</span></div>${peaks?`<p class="note" style="margin-top:4px">Most collisions: ${esc(peaks)}.</p>`:""}
+  <h3>What the records point to</h3>${fl.length?fl.map(([f,n])=>`<div class="bar"><span>${esc(f)}</span><i style="width:${Math.round(100*n/fl[0][1])}%"></i><span>${n}</span></div>`).join(""):'<p class="muted">Not enough recorded causes here.</p>'}
+  <h3>Countermeasures to evaluate</h3><ul class="steps">${steps.slice(0,5).map(s=>`<li><b>${esc(s[0])}</b><br><small>${esc(s[1])} (for: ${esc(s[2])})</small> <a href="${/turn|yield|curb|crosswalk/i.test(s[0]+s[2])?TURN:GUIDE}" target="_blank" rel="noopener">Read the guidance</a></li>`).join("")||'<li class="muted">No clear pattern in the records.</li>'}</ul>
+  <p class="note">Ideas for engineers to evaluate, not a diagnosis or a proven effect at this location.</p>
+  <button class="tool" id="brief" style="min-width:0;margin-top:10px">Copy brief</button> <span class="note" id="briefMsg" role="status"></span>`;
+  $("pN").innerHTML=`<h2>${esc(c.name)}</h2>
+  ${cam?`<div class="live"><img id="liveImg" alt="Latest still from the traffic camera at ${esc(cam.name)}"><span class="badge" id="liveBadge">LATEST STILL</span><span class="stamp" id="stamp"></span></div>
+  <p class="note" style="margin-top:6px">${c.img?"":"Nearest DOT camera: "+esc(cam.name)+", about "+cam.dist+" m away. It may not see this crossing. "}A still image, not video. The camera service does not tell us when it was captured; the time shown is when your browser asked for it.</p>`:'<p class="note">No DOT camera within 180 m of this corner, so there is no still image.</p>'}
+  <div class="grid4"><div class="stat">${c.xs?`<b style="color:${XCOL(c.ic)}">${c.ic}</b><small>injury crashes at this corner</small>`:`<b style="color:${known?txtColor(c.pct):"var(--mute)"}">${known&&!failed?pct:"n/a"}</b><small>crash-history percentile among ${cams.length} camera areas</small>`}</div><div class="stat"><b>${failed?"n/a":rows.length}</b><small>collisions within 120 m</small></div><div class="stat"><b>${failed?"n/a":inj}</b><small>people injured</small></div><div class="stat"><b>${failed?"n/a":ped}</b><small>pedestrians injured${!failed&&kil?`, ${kil} killed`:""}</small></div></div>${body}`;
+  if(failed)$("retry").onclick=()=>openPlace(c,false);
+  else $("brief").onclick=async()=>{const t=briefText(c,{n:rows.length,inj,ped,kil,peaks,fl,steps});try{await navigator.clipboard.writeText(t);$("briefMsg").textContent="Copied."}catch(e){const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("aria-label","Brief text");ta.style.cssText="width:100%;height:160px;margin-top:8px;background:#fff;color:var(--fog);border:1px solid var(--line);border-radius:8px;padding:8px";$("briefMsg").after(ta);ta.select();$("briefMsg").textContent="Copy blocked by the browser; select the text below."}};
+  const img=$("liveImg"),badge=$("liveBadge"),stamp=$("stamp");
+  if(!img||!cam)return;
+  const tick=()=>{img.src=cam.img+"?t="+Date.now();stamp.textContent="requested "+new Date().toLocaleTimeString()};
+  img.onerror=()=>{badge.textContent="IMAGE UNAVAILABLE";badge.classList.add("off")};img.onload=()=>{badge.textContent="LATEST STILL";badge.classList.remove("off")};
+  tick();liveTimer=setInterval(tick,3000);
+}
+
+const CUES=[["Signal or crossing mentioned",/against the (light|signal)|jaywalk|mid-?block|red light|crosswalk/i],["Stroller or wheelchair mentioned",/stroller|wheelchair/i],["Cyclist mentioned",/cyclist|bicycle|bike/i],["Phone mentioned",/phone|texting/i],["Headphones mentioned",/headphone|earbud|earphone/i],["Clothing mentioned",/(dark|black|navy)\s+(jacket|clothing|coat|outfit|hoodie|sweater)/i],["Running mentioned",/running|runs |jogging|dashes|rushing/i]];
+const LKEY="pharos.labels.v1",NKEY="pharos.labeler.v1";
+const getL=()=>{try{return JSON.parse(localStorage.getItem(LKEY)||"{}")}catch(e){return{}}};
+const putL=o=>{try{localStorage.setItem(LKEY,JSON.stringify(o))}catch(e){}};
+const evId=e=>e.id||[e.video,e.segment,e.t_in_segment,(e.classes||[]).join("+")].join("|");
+function csvCell(v){v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCsv(ev){const L=getL(),who=(()=>{try{return localStorage.getItem(NKEY)||""}catch(e){return""}})();
+  const head=["id","labeler","label","reason","video","segment","t_in_segment_s","classes","severity","min_dist_m","closing_mps","ttc_s","vehicle_speed_mps","site"];
+  const rows=ev.filter(e=>L[evId(e)]).map(e=>{const l=L[evId(e)];return [evId(e),who,l.label,l.reason||"",e.video,e.segment,e.t_in_segment,(e.classes||[]).join("+"),e.severity,e.min_dist_m,e.peak_closing_mps,e.ttc_s??"",e.vehicle_speed_mps??"","unknown (VAST does not publish camera coordinates)"].map(csvCell).join(",")});
+  const blob=new Blob([[head.join(","),...rows].join("\n")],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="pharos_labels_"+(who||"labeler").replace(/\W+/g,"_")+".csv";document.body.appendChild(a);a.click();a.remove()}
+async function watch(){
+  let ev=[],reached=false;for(const u of ["/events","data/events.json"]){try{const r=await fetch(u);if(r.ok){reached=true;ev=await r.json();if(ev.length)break}}catch(e){}}
+  SRC.candidates=reached?{ok:true,text:"Candidate server: "+ev.length+" candidates"}:{ok:false,text:"Candidate server: not connected"};refreshSrc();
+  const method=`<h3>How PharOS reads candidates</h3><ul class="steps"><li><b>Measured now</b><br><small>Tracks estimate approximate distance, closing speed and time to collision in analysed footage. These are candidate events for human review.</small></li><li><b>Scene description</b><br><small>Cosmos captions sometimes mention things such as a phone or clothing. These mentions are unverified, are shown only for context, and are never a judgement of a person. The measured distance, speed and timing matter more.</small></li><li><b>Planned</b><br><small>Camera-calibrated trajectory projection into mapped crosswalks, to flag a vehicle path that conflicts with an occupied or soon-to-be-occupied crossing, is not built yet.</small></li></ul>`;
+  if(!ev.length){$("pW").innerHTML=`<h2>Review</h2><p class="muted">${reached?"The analysis server answered but returned zero candidates.":"Not connected to the PharOS analysis server, so no candidates can be shown. This is different from zero candidates."} Candidates from analysed street footage (VAST, YOLO, Cosmos, W&amp;B) appear here when this page is served by <code>nm5.py</code> on the workshop VM.</p>${method}`;return}
+  const L=getL(),done=ev.filter(e=>L[evId(e)]).length;
+  const cnt=lab=>ev.filter(e=>(L[evId(e)]||{}).label===lab).length;
+  let who="";try{who=localStorage.getItem(NKEY)||""}catch(e){}
+  $("pW").innerHTML=`<h2>Review queue</h2><p class="muted">${ev.length} candidates from analysed street footage, spread across the review-priority ranking. The camera location is unknown (VAST does not publish coordinates), so these clips are not tied to the camera area selected on the map. Mark each one so we can estimate the detector's precision on this review sample. Review priority is a heuristic for ordering clips (closer, faster approaches rank higher); it is not a probability or an injury prediction.</p>
+  <div class="card"><label class="muted" for="lbName">Your name or initials</label><input id="lbName" value="${esc(who)}" placeholder="for the CSV and agreement check" style="width:100%;margin:4px 0 8px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--night);color:var(--fog)">
+  <div id="lbStat" class="muted">${done} of ${ev.length} reviewed: ${cnt("real")} real, ${cnt("false")} false, ${cnt("uncertain")} uncertain.</div>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="tool" id="lbCsv" style="min-width:0">Export CSV</button><button class="tool" id="lbClr" style="min-width:0">Clear labels</button></div></div>`+
+  ev.map((e,i)=>{const id=evId(e),l=L[id]||{},cues=CUES.filter(c=>c[1].test(e.scene||"")).map(c=>`<span class="cue">${c[0]}</span>`).join("");
+    const btn=(v,t)=>`<button class="tool lb" data-i="${i}" data-v="${v}" aria-pressed="${l.label===v}" style="min-width:0;flex:1">${t}</button>`;
+    return `<div class="card" data-card="${i}"><video controls preload="metadata" src="/clip?src=${encodeURIComponent(e.source)}#t=${Math.max(0,e.t_in_segment-1)}"></video><p><b>${i+1}. ${esc((e.classes||[]).join(" + "))}</b> review priority ${e.severity}${e.cosmos?` <span class="cue">Cosmos: ${esc(e.cosmos.verdict)}</span>`:""}</p><p class="muted">closest ${Number(e.min_dist_m).toFixed(2)} m, closing ${Number(e.peak_closing_mps).toFixed(1)} m/s${e.ttc_s!=null?`, time to collision ${e.ttc_s} s`:""}${e.vehicle_speed_mps!=null?`, vehicle ${e.vehicle_speed_mps} m/s`:""}</p>
+    <p class="muted" style="margin:4px 0"><small>Real means: a vehicle and a pedestrian or cyclist where someone appears to need evasive action.</small></p>
+    <div style="display:flex;gap:6px">${btn("real","Real")}${btn("false","False")}${btn("uncertain","Unsure")}</div>
+    <input class="lbWhy" data-i="${i}" value="${esc(l.reason||"")}" placeholder="Reason (optional)" style="width:100%;margin-top:6px;padding:7px;border-radius:8px;border:1px solid var(--line);background:var(--night);color:var(--fog)">
+    <details style="margin-top:6px"><summary>Scene description and caption mentions (unverified, context only)</summary><p class="muted">${esc(e.scene||"n/a")}</p><div>${cues||'<span class="muted">Nothing notable mentioned.</span>'}</div></details></div>`}).join("")+method;
+  const refresh=()=>{const L2=getL(),d=ev.filter(e=>L2[evId(e)]).length,c=lab=>ev.filter(e=>(L2[evId(e)]||{}).label===lab).length;$("lbStat").textContent=`${d} of ${ev.length} reviewed: ${c("real")} real, ${c("false")} false, ${c("uncertain")} uncertain.`};
+  $("lbName").onchange=e=>{try{localStorage.setItem(NKEY,e.target.value.trim())}catch(x){}};
+  document.querySelectorAll("button.lb").forEach(b=>b.onclick=()=>{const e=ev[+b.dataset.i],o=getL(),id=evId(e),why=document.querySelector(`.lbWhy[data-i="${b.dataset.i}"]`).value;o[id]={label:b.dataset.v,reason:why,at:new Date().toISOString()};putL(o);
+    b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));refresh()});
+  document.querySelectorAll(".lbWhy").forEach(inp=>inp.onchange=()=>{const e=ev[+inp.dataset.i],o=getL(),id=evId(e);if(o[id]){o[id].reason=inp.value;putL(o)}});
+  $("lbCsv").onclick=()=>exportCsv(ev);
+  $("lbClr").onclick=()=>{if(confirm("Clear all labels in this browser?")){putL({});watch()}};
+}
+
+function startTour(){const top=[...cams].sort((a,b)=>b.score-a.score).slice(0,6);let i=0;tourOn=true;$("tTour").setAttribute("aria-pressed","true");
+  const go=()=>{if(!tourOn)return;const c=top[i%top.length];i++;pick(c.id,false);map.flyTo({center:[c.lon,c.lat],zoom:17.4,pitch:72,bearing:(i*53)%360-120,duration:dur(4200),essential:true});tourTimer=setTimeout(go,9500)};go()}
+function stopTour(){if(!tourOn)return;tourOn=false;clearTimeout(tourTimer);$("tTour").setAttribute("aria-pressed","false")}
+$("tTour").onclick=()=>tourOn?stopTour():startTour();
+$("tHeat").onclick=e=>{const on=e.currentTarget.getAttribute("aria-pressed")!=="true";e.currentTarget.setAttribute("aria-pressed",String(on));map.setLayoutProperty("heat","visibility",on?"visible":"none")};
+$("t3d").onclick=e=>{const on=e.currentTarget.getAttribute("aria-pressed")!=="true";e.currentTarget.setAttribute("aria-pressed",String(on));map.easeTo({pitch:on?62:0,bearing:on?-28:0,duration:dur(900)})};
+addEventListener("keydown",e=>{if(/input|textarea/i.test(e.target.tagName))return;const k=e.key.toLowerCase();if(k==="w")$("tTour").click();if(k==="h")$("tHeat").click();if(k==="t")$("t3d").click()});
+
+(async()=>{
+  initMap();
+  if(RM){const t=$("tTour");t.disabled=true;t.title="Turned off because your system asks for reduced motion";t.style.opacity=.55}
+  $("pO").innerHTML='<h2>Loading</h2><p class="muted">Fetching collision records and camera locations...</p>';
+  let f=[];
+  try{f=await loadData()}catch(e){SRC.collisions={ok:false,text:"Collision records: unavailable"}}
+  try{await window.mapReady;map.getSource("nodes").setData(nodesGeo());map.getSource("heat").setData(heatGeo())}catch(e){}
+  overview(f);
+  watch();
+})();
+</script>
+</body>
+</html>
