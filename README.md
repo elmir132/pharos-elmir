@@ -5,7 +5,7 @@ A lighthouse for city intersections. PharOS shows where people get hurt in Manha
 Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights & Biases, Cursor), NYC, Oct 9 2026. Design and the meaning of the name: [`design/README.md`](design/README.md). Research and data sources: [`design/RESEARCH.md`](design/RESEARCH.md).
 
 ## Result and where the team version lives
-Built at the Real-Time Video Agents Hack (NYC, Oct 9 2026) with Pranav Palle and Divyesh Thirukonda. We did not place, and it was a good day of building. This repo is Elmir's parallel build: the 3D map, the detector (`nm.py`), the review queue and the design notes. The team's deployed front end is Divyesh's app, https://github.com/Divyesh-Thirukonda/pharos, which also carries the shared heat and dot color scale and the measured near-miss panel contributed from this repo. Accuracy of the detector was never measured; see "What is not done" below.
+Built at the Real-Time Video Agents Hack (NYC, Oct 9 2026) with Pranav Palle and Divyesh Thirukonda. We did not place, and it was a good day of building. This repo is Elmir's parallel build: the 3D map, the detector (`nm.py`), the review queue and the design notes. The team's deployed front end is Divyesh's app, https://github.com/Divyesh-Thirukonda/pharos, which also carries the shared heat and dot color scale and the measured near-miss panel contributed from this repo. Accuracy of the detector was never measured; see the status table below.
 
 ## Where we are
 
