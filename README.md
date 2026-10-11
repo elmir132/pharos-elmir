@@ -2,6 +2,10 @@
 
 A lighthouse for city intersections. PharOS shows where people get hurt in Manhattan, lets you open the live camera at each intersection, and finds candidate near misses in street footage, with the measurements behind each one.
 
+![The PharOS map: opening the two intersections with the most injury crashes, each with the nearest camera still and its crash history](docs/demo.gif)
+
+*Recorded from the [live map page](https://elmirabd.me/pharos-elmir/), which runs in the browser on public NYC data with no key. The near-miss review needs the workshop servers and is not shown.*
+
 Built at the Real-Time Video Agents Hack (VAST Data, NVIDIA, CoreWeave, Weights & Biases, Cursor), NYC, Oct 9 2026. Design and the meaning of the name: [`design/README.md`](design/README.md). Research and data sources: [`design/RESEARCH.md`](design/RESEARCH.md).
 
 ## Result and where the team version lives
